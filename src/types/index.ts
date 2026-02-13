@@ -1,4 +1,10 @@
-import type { Organizer, CheckInPage, Attendee, CheckIn, AuditLog } from "@prisma/client";
+import {
+  Organizer,
+  CheckInPage,
+  Attendee,
+  CheckIn,
+  AuditLog,
+} from "../../prisma/generated/client";
 
 export type { Organizer, CheckInPage, Attendee, CheckIn, AuditLog };
 
