@@ -7,4 +7,3 @@ export { PreviewDialog } from "./preview-dialog";
 export { DeleteConfirmationDialog } from "./delete-confirmation-dialog";
 export { NotFound } from "./not-found";
 export type { CheckInPage } from "./types";
-export { mockCheckInPages } from "./types";
