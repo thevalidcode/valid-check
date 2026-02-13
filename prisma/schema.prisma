@@ -1,0 +1,85 @@
+// Prisma schema for Valid CheckIn
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Organizer {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  passwordHash String
+  createdAt    DateTime      @default(now())
+  checkInPages CheckInPage[]
+  auditLogs    AuditLog[]
+}
+
+model CheckInPage {
+  id          String    @id @default(uuid())
+  organizer   Organizer @relation(fields: [organizerId], references: [id])
+  organizerId String
+  title       String
+  slug        String    @unique
+  description String?
+  eventDate   DateTime
+  startTime   DateTime?
+  endTime     DateTime?
+  capacity    Int?
+  isActive    Boolean   @default(true)
+
+  // Recurring Events
+  isRecurring       Boolean   @default(false)
+  recurrencePattern String? // DAILY, WEEKLY, MONTHLY
+  recurrenceEnd     DateTime?
+
+  // Custom Fields to collect
+  collectPhone Boolean @default(false)
+  collectDOB   Boolean @default(false)
+
+  // New Features: Registration & Location
+  allowSelfRegistration Boolean @default(true)
+  requireLocation       Boolean @default(false)
+  locationName          String?
+  latitude              Float?
+  longitude             Float?
+  radius                Int?      @default(100) // radial distance in meters
+  successMessage        String?   @default("Thank you for checking in!")
+
+  createdAt DateTime  @default(now())
+  checkIns  CheckIn[]
+}
+
+model Attendee {
+  id          String    @id @default(uuid())
+  email       String
+  fullName    String
+  phone       String?
+  dateOfBirth DateTime?
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  checkIns    CheckIn[]
+}
+
+model CheckIn {
+  id            String      @id @default(uuid())
+  checkInPage   CheckInPage @relation(fields: [checkInPageId], references: [id], onDelete: Cascade)
+  checkInPageId String
+  attendee      Attendee    @relation(fields: [attendeeId], references: [id])
+  attendeeId    String
+  checkedInAt   DateTime    @default(now())
+  ipAddress     String?
+  userAgent     String?
+}
+
+model AuditLog {
+  id          String    @id @default(uuid())
+  organizer   Organizer @relation(fields: [organizerId], references: [id])
+  organizerId String
+  action      String
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+}
