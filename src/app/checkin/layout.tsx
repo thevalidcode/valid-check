@@ -4,7 +4,7 @@ import { useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    document.title = "CheckIn - Valid CheckIn";
+    document.title = "CheckIn - Valid Check";
   }, []);
 
   return <div>{children}</div>;

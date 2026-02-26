@@ -359,9 +359,19 @@ export default function AttendeesPage({
                           >
                             <TableCell className="py-5 px-8">
                               <div className="flex items-center gap-3">
-                                <div className="h-9 w-9 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-700 dark:text-yellow-400 font-bold text-sm">
-                                  {attendee.fullName.charAt(0)}
-                                </div>
+                                {attendee.picture ? (
+                                  <div className="h-10 w-10 rounded-full border-2 border-neutral-100 dark:border-neutral-800 overflow-hidden shadow-sm">
+                                    <img
+                                      src={attendee.picture}
+                                      alt={attendee.fullName}
+                                      className="h-full w-full object-cover"
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-700 dark:text-yellow-400 font-bold text-sm border-2 border-neutral-100 dark:border-neutral-800 shadow-sm">
+                                    {attendee.fullName.charAt(0).toUpperCase()}
+                                  </div>
+                                )}
                                 <div className="flex flex-col">
                                   <span className="font-bold text-neutral-900 dark:text-neutral-50 leading-tight">
                                     {attendee.fullName}
@@ -428,11 +438,21 @@ export default function AttendeesPage({
                       className="bg-white dark:bg-neutral-900 p-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-sm space-y-4"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-700 dark:text-yellow-400 font-bold">
-                          {attendee.fullName.charAt(0)}
-                        </div>
+                        {attendee.picture ? (
+                          <div className="h-10 w-10 rounded-full border-2 border-neutral-100 dark:border-neutral-800 overflow-hidden shadow-sm">
+                            <img
+                              src={attendee.picture}
+                              alt={attendee.fullName}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="h-10 w-10 rounded-full bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center text-yellow-700 dark:text-yellow-400 font-bold border-2 border-neutral-100 dark:border-neutral-800 shadow-sm">
+                            {attendee.fullName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
                         <div>
-                          <p className="font-bold text-neutral-900 dark:text-neutral-50">
+                          <p className="font-bold text-neutral-900 dark:text-neutral-50 leading-tight">
                             {attendee.fullName}
                           </p>
                           <div className="flex items-center gap-2">

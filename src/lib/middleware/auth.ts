@@ -4,6 +4,8 @@ import { verifyToken } from "@/lib/auth/jwt";
 export interface OrganizerUser {
   id: string;
   email: string;
+  name?: string | null;
+  picture?: string | null;
 }
 
 export interface AuthenticatedRequest extends NextRequest {

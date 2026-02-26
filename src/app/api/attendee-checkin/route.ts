@@ -31,30 +31,81 @@ export async function POST(request: NextRequest) {
         throw new APIError(403, "This check-in portal is currently inactive.");
       }
 
+      // 3. Time Window Verification
+      const now = new Date();
+
       if (checkInPage.capacity) {
-        const count = await prisma.checkIn.count({ where: { checkInPageId } });
+        const count = await prisma.checkIn.count({
+          where: {
+            checkInPageId,
+            ...(checkInPage.isRecurring
+              ? {
+                  checkedInAt: {
+                    gte: startOfDay(now),
+                    lte: endOfDay(now),
+                  },
+                }
+              : {}),
+          },
+        });
         if (count >= checkInPage.capacity) {
-          throw new APIError(403, "Event capacity reached. No more check-ins allowed.");
+          throw new APIError(
+            403,
+            checkInPage.isRecurring
+              ? "Today's session has reached its full capacity."
+              : "Event capacity reached. No more check-ins allowed.",
+          );
         }
       }
 
-      // 3. Time Window Verification
-      const now = new Date();
-      
       if (checkInPage.isRecurring) {
         // For recurring events, we check time of day and the recurrence end date
-        if (checkInPage.recurrenceEnd && now > new Date(checkInPage.recurrenceEnd)) {
+        if (
+          checkInPage.recurrenceEnd &&
+          now > endOfDay(new Date(checkInPage.recurrenceEnd))
+        ) {
           throw new APIError(403, "This recurring event series has ended.");
+        }
+
+        // Check if the current day matches the recurring pattern
+        if (checkInPage.recurrencePattern === "WEEKLY") {
+          const originalDate = new Date(checkInPage.eventDate);
+          if (now.getDay() !== originalDate.getDay()) {
+            const days = [
+              "Sunday",
+              "Monday",
+              "Tuesday",
+              "Wednesday",
+              "Thursday",
+              "Friday",
+              "Saturday",
+            ];
+            throw new APIError(
+              403,
+              `This event only takes place on ${days[originalDate.getDay()]}s.`,
+            );
+          }
+        } else if (checkInPage.recurrencePattern === "MONTHLY") {
+          const originalDate = new Date(checkInPage.eventDate);
+          if (now.getDate() !== originalDate.getDate()) {
+            throw new APIError(
+              403,
+              `This event only takes place on the ${originalDate.getDate()}th of each month.`,
+            );
+          }
         }
 
         if (checkInPage.startTime || checkInPage.endTime) {
           const currentTimeInMinutes = now.getHours() * 60 + now.getMinutes();
-          
+
           if (checkInPage.startTime) {
             const start = new Date(checkInPage.startTime);
             const startInMinutes = start.getHours() * 60 + start.getMinutes();
             if (currentTimeInMinutes < startInMinutes) {
-              throw new APIError(403, `Check-in for today's session hasn't started yet. Please come back at ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`);
+              throw new APIError(
+                403,
+                `Check-in for today's session hasn't started yet. Please come back at ${start.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.`,
+              );
             }
           }
 
@@ -62,24 +113,56 @@ export async function POST(request: NextRequest) {
             const end = new Date(checkInPage.endTime);
             const endInMinutes = end.getHours() * 60 + end.getMinutes();
             if (currentTimeInMinutes > endInMinutes) {
-              throw new APIError(403, "Check-in for today's session has already closed.");
+              throw new APIError(
+                403,
+                "Check-in for today's session has already closed.",
+              );
             }
           }
         }
       } else {
         // Single event window check
+        const eventDate = new Date(checkInPage.eventDate);
+        const isSameDay =
+          now.getFullYear() === eventDate.getFullYear() &&
+          now.getMonth() === eventDate.getMonth() &&
+          now.getDate() === eventDate.getDate();
+
+        if (!isSameDay) {
+          if (now < eventDate) {
+            throw new APIError(
+              403,
+              `This event is scheduled for ${eventDate.toLocaleDateString()}. Please come back then.`,
+            );
+          } else {
+            throw new APIError(
+              403,
+              "The check-in period for this event has expired.",
+            );
+          }
+        }
+
         if (checkInPage.startTime && now < new Date(checkInPage.startTime)) {
-          throw new APIError(403, `This event hasn't started yet. Check-in opens at ${new Date(checkInPage.startTime).toLocaleString()}.`);
+          throw new APIError(
+            403,
+            `Check-in hasn't opened yet. It starts at ${new Date(checkInPage.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}.`,
+          );
         }
         if (checkInPage.endTime && now > new Date(checkInPage.endTime)) {
-          throw new APIError(403, "The check-in period for this event has expired.");
+          throw new APIError(
+            403,
+            "The check-in window for this event has closed.",
+          );
         }
       }
 
       // 4. Location verification
       if (checkInPage.requireLocation) {
         if (!latitude || !longitude) {
-          throw new APIError(403, "Location access is required to verify your attendance.");
+          throw new APIError(
+            403,
+            "Location access is required to verify your attendance.",
+          );
         }
 
         if (checkInPage.latitude && checkInPage.longitude) {
@@ -89,37 +172,45 @@ export async function POST(request: NextRequest) {
           const Δφ = ((latitude - checkInPage.latitude) * Math.PI) / 180;
           const Δλ = ((longitude - checkInPage.longitude) * Math.PI) / 180;
 
-          const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-                  Math.cos(φ1) * Math.cos(φ2) *
-                  Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+          const a =
+            Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
           const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
           const distance = R * c;
 
           if (distance > (checkInPage.radius || 100)) {
-            throw new APIError(403, `Proximity check failed. You must be within ${checkInPage.radius || 100}m of the venue.`);
+            throw new APIError(
+              403,
+              `Proximity check failed. You must be within ${checkInPage.radius || 100}m of the venue.`,
+            );
           }
         }
       }
 
       // 5. Duplicate Check-in Logic
       const existingCheckIn = await prisma.checkIn.findFirst({
-        where: { 
-          checkInPageId, 
+        where: {
+          checkInPageId,
           attendeeId,
-          ...(checkInPage.isRecurring ? {
-            checkedInAt: {
-              gte: startOfDay(now),
-              lte: endOfDay(now)
-            }
-          } : {})
+          ...(checkInPage.isRecurring
+            ? {
+                checkedInAt: {
+                  gte: startOfDay(now),
+                  lte: endOfDay(now),
+                },
+              }
+            : {}),
         },
       });
 
       if (existingCheckIn) {
-        throw new APIError(409, checkInPage.isRecurring 
-          ? "You have already checked in for today's session." 
-          : "Duplicate check-in detected. You are already registered for this event.");
+        throw new APIError(
+          409,
+          checkInPage.isRecurring
+            ? "You have already checked in for today's session."
+            : "Duplicate check-in detected. You are already registered for this event.",
+        );
       }
 
       // 6. Perform Check-in
@@ -140,7 +231,10 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return createSuccessResponse(checkIn, checkInPage.successMessage || "Attendee checked in successfully");
+      return createSuccessResponse(
+        checkIn,
+        checkInPage.successMessage || "Attendee checked in successfully",
+      );
     } catch (error) {
       return handleAPIError(error);
     }

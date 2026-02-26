@@ -1,4 +1,4 @@
-// Prisma schema for Valid CheckIn
+// Prisma schema for Valid Check
 
 generator client {
   provider = "prisma-client-js"
@@ -12,7 +12,9 @@ datasource db {
 model Organizer {
   id           String        @id @default(uuid())
   email        String        @unique
-  passwordHash String
+  name         String?
+  picture      String?
+  passwordHash String?
   createdAt    DateTime      @default(now())
   checkInPages CheckInPage[]
   auditLogs    AuditLog[]
@@ -46,8 +48,8 @@ model CheckInPage {
   locationName          String?
   latitude              Float?
   longitude             Float?
-  radius                Int?      @default(100) // radial distance in meters
-  successMessage        String?   @default("Thank you for checking in!")
+  radius                Int?    @default(100) // radial distance in meters
+  successMessage        String? @default("Thank you for checking in!")
 
   createdAt DateTime  @default(now())
   checkIns  CheckIn[]
@@ -57,6 +59,7 @@ model Attendee {
   id          String    @id @default(uuid())
   email       String
   fullName    String
+  picture     String?
   phone       String?
   dateOfBirth DateTime?
   createdAt   DateTime  @default(now())
@@ -82,4 +85,11 @@ model AuditLog {
   action      String
   metadata    Json?
   createdAt   DateTime  @default(now())
+}
+
+model SessionCode {
+  code      String   @id
+  email     String
+  expiresAt DateTime
+  used      Boolean  @default(false)
 }

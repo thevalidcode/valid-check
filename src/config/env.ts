@@ -10,6 +10,8 @@ const envSchema = z.object({
     .default("development"),
   DATABASE_URL: z.url().default(""),
   FRONTEND_URL: z.string().optional(),
+  GOOGLE_CLIENT_ID: z.string().default(""),
+  GOOGLE_CLIENT_SECRET: z.string().default(""),
 });
 
 // Parse and validate

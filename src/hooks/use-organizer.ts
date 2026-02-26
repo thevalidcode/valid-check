@@ -60,5 +60,19 @@ export function useOrganizer() {
     },
   });
 
-  return { meQuery, login, register, logout };
+  const googleExchange = useMutation({
+    mutationFn: async (sessionCode: string) => {
+      const res = await api.post("/auth/exchange-session", { sessionCode });
+      return res.data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["me"] });
+    },
+    onError: (error) => {
+      const errorMsg = normalizeApiError(error, "Google authentication failed.");
+      toast.error(errorMsg);
+    },
+  });
+
+  return { meQuery, login, register, logout, googleExchange };
 }

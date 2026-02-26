@@ -95,6 +95,16 @@ export function Navbar() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     asChild
+                    className="rounded-lg cursor-pointer font-medium"
+                  >
+                    <Link href="/dashboard/profile" className="flex items-center gap-2">
+                       <User className="h-4 w-4 text-neutral-400" />
+                       Profile Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    asChild
                     className="rounded-lg cursor-pointer"
                   >
                     <Link href="/dashboard" className="flex items-center">

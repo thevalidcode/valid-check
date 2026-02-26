@@ -6,7 +6,7 @@ export function Footer() {
   return (
     <footer className="bg-white dark:bg-neutral-950 border-t border-neutral-100 dark:border-neutral-800">
       <div className="container mx-auto py-16 px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-12 mb-16">
           <div className="md:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-6">
               <div className="bg-primary p-1.5 rounded-lg">
@@ -61,6 +61,30 @@ export function Footer() {
                   className="text-sm font-medium text-neutral-500 hover:text-primary transition-colors"
                 >
                   Open Source
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-sm uppercase tracking-widest text-neutral-900 dark:text-neutral-50 mb-6">
+              Legal
+            </h3>
+            <ul className="space-y-4">
+              <li>
+                <Link
+                  href="/privacy"
+                  className="text-sm font-medium text-neutral-500 hover:text-primary transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/terms"
+                  className="text-sm font-medium text-neutral-500 hover:text-primary transition-colors"
+                >
+                  Terms of Service
                 </Link>
               </li>
             </ul>

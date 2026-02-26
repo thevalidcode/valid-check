@@ -4,4 +4,6 @@ dist/
 .next/
 out/
 
+.DS_Store
+
 prisma/generated

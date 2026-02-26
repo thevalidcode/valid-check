@@ -52,5 +52,34 @@ export function useAttendee() {
     },
   });
 
-  return { useGetAttendee, useFindByEmail, create, update };
+  const exchangeSessionMutation = useMutation({
+    mutationFn: async ({
+      sessionCode,
+      slug,
+    }: {
+      sessionCode: string;
+      slug?: string;
+    }) => {
+      const { data } = await api.post("/attendees/exchange-session", {
+        session_code: sessionCode,
+        slug,
+      });
+      return data;
+    },
+    onError: (error) => {
+      const errorMsg = normalizeApiError(
+        error,
+        "Google session exchange failed.",
+      );
+      toast.error(errorMsg);
+    },
+  });
+
+  return {
+    useGetAttendee,
+    useFindByEmail,
+    create,
+    update,
+    exchangeSession: exchangeSessionMutation,
+  };
 }
