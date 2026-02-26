@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
         where: { email: validatedData.email },
       });
 
-      if (!organizer) {
+      if (!organizer || !organizer.passwordHash) {
         throw new APIError(401, "Invalid credentials");
       }
 
